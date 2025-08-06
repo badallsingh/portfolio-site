@@ -3,6 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <title>Badal Singh - Portfolio</title>
+  <link rel="stylesheet" href="style.css">
+
 </head>
 <body>
 
@@ -10,6 +12,7 @@
   <h1>Badal Singh</h1>
 
   <!-- About Me Section -->
+  <div class="container">
   <section>
     <h2>About Me</h2>
     <p>
@@ -36,31 +39,42 @@
     </ul>
   </section>
 
-  <!-- Projects Section -->
-  <section>
-    <h2>Projects</h2>
-
+  
+   
+   <nav>
+  <a href="#about">About</a>
+  <a href="#skills">Skills</a>
+  <a href="#projects">Projects</a>
+  <a href="#contact">Contact</a>
+</nav>
+<div class="projects">
+  <div class="card">
     <h3>Smart Recipe Generator</h3>
-    <p>
-      A web app that generates recipes based on user input and provides nutrition facts. 
-      <br>
-      <a href="https://github.com/badallsingh/js-text-badalsingh" target="_blank">View on GitHub</a>
-    </p>
+    <p>A web app that provides recipes & nutrition facts.</p>
+    <a href="https://github.com/badallsingh/portfolio-site.git">GitHub</a>
+  </div>
+</div>
+<form>
+  <label>Name</label>
+  <input type="text" name="name" required>
 
-    <h3>Guess the Number Game</h3>
-    <p>
-      A JavaScript-based number guessing game with feedback and attempts tracking.
-      <br>
-      <a href="https://github.com/badallsingh/js-text-badalsingh" target="_blank">View on GitHub</a>
-    </p>
-  </section>
+  <label>Email</label>
+  <input type="email" name="email" required>
 
-  <!-- Contact Section -->
-  <section>
-    <h2>Contact</h2>
-    <p>Email: badalsingh931038@gmail.com</p>
-    <p>Phone: 9213964904</p>
-  </section>
+  <label>Message</label>
+  <textarea name="message" rows="4" required></textarea>
+
+  <button type="submit">Send</button>
+</form>
+
+</div> 
+<footer>
+  <p>© 2025 Badal Singh | 
+    <a href="mailto:badalsingh931038@gmail.com">Email</a> |
+    <a href="https://github.com/badallsingh">GitHub</a>
+  </p>
+</footer>
 
 </body>
+
 </html> 
