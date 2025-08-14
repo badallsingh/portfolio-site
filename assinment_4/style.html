@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TaskFlow – To-Do & Habit Tracker</title>
+
+  <!-- ====== Embedded CSS (clean, responsive, modern) ====== -->
+  <style>
+    :root{
+      --bg: #0f172a;         /* slate-900 */
+      --card:#111827;        /* gray-900 */
+      --soft:#1f2937;        /* gray-800 */
+      --text:#e5e7eb;        /* gray-200 */
+      --muted:#9ca3af;       /* gray-400 */
+      --brand:#3b82f6;       /* blue-500 */
+      --brand-2:#2563eb;     /* blue-600 */
+      --ok:#22c55e;          /* green-500 */
+      --warn:#f59e0b;        /* amber-500 */
+      --danger:#ef4444;      /* red-500 */
+      --ring: 0 0 0 3px rgba(59,130,246,.35);
+    }
+    /* Light theme (auto toggled with .light on <body>) */
+    body.light{
+      --bg:#f7fafc;
+      --card:#ffffff;
+      --soft:#f1f5f9;
+      --text:#0f172a;
+      --muted:#475569;
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,"Helvetica Neue",Arial;
+      background:var(--bg);
+      color:var(--text);
+      line-height:1.5;
+    }
+
+    /* ====== Header / Nav ====== */
+    header{
+      position:sticky; top:0; z-index:20;
+      backdrop-filter:saturate(180%) blur(6px);
+      background:color-mix(in srgb, var(--bg) 70%, transparent);
+      border-bottom:1px solid color-mix(in srgb, var(--text) 10%, transparent);
+    }
+    .nav{
+      max-width:1100px; margin:0 auto; padding:12px 16px;
+      display:flex; align-items:center; gap:16px; justify-content:space-between;
+    }
+    .brand{display:flex; gap:10px; align-items:center; font-weight:700}
+    .brand-badge{
+      width:32px; height:32px; display:grid; place-items:center;
+      border-radius:10px; color:white; background:linear-gradient(135deg,var(--brand),var(--brand-2));
+      box-shadow:0 6px 20px rgba(37,99,235,.35);
+      font-size:14px;
+    }
+    nav a{
+      color:var(--text); text-decoration:none; opacity:.85; margin-left:16px;
+    }
+    nav a:hover{opacity:1}
+    .nav-right{display:flex; align-items:center}
+    .btn{
+      border:none; padding:10px 14px; border-radius:10px; cursor:pointer;
+      color:#fff; background:linear-gradient(135deg,var(--brand),var(--brand-2));
+      box-shadow:0 6px 18px rgba(59,130,246,.35);
+      transition:transform .08s ease, filter .2s ease;
+    }
+    .btn:active{transform:translateY(1px)}
+    .ghost{
+      background:transparent; color:var(--text);
+      border:1px solid color-mix(in srgb, var(--text) 14%, transparent);
+      box-shadow:none;
+    }
+
+    /* ====== Hero ====== */
+    .hero{
+      max-width:1100px; margin:32px auto; padding:24px 16px;
+      display:grid; gap:16px;
+      grid-template-columns:1.2fr .8fr;
+    }
+    .hero .card{
+      border-radius:18px; background:var(--card);
+      padding:24px; box-shadow:0 10px 30px rgba(0,0,0,.25);
+      border:1px solid color-mix(in srgb, var(--text) 10%, transparent);
+    }
+    .muted{color:var(--muted)}
+
+    /* ====== Layout for app ====== */
+    .app{
+      max-width:1100px; margin:8px auto 40px; padding:0 16px;
+      display:grid; gap:18px;
+      grid-template-columns: 1fr 2fr;
+    }
+    .card{background:var(--card); border-radius:16px; padding:18px;
+      border:1px solid color-mix(in srgb, var(--text) 10%, transparent);
+      box-shadow:0 10px 28px rgba(0,0,0,.25)
+    }
+
+    /* ====== Task form ====== */
+    .row{display:flex; gap:10px; flex-wrap:wrap}
+    input[type="text"], input[type="date"], select, textarea{
+      width:100%; padding:12px 14px; border-radius:10px; border:1px solid transparent;
+      background:var(--soft); color:var(--text); outline:none;
+    }
+    input:focus, select:focus, textarea:focus{box-shadow:var(--ring)}
+    .row > *{flex:1 1 220px}
+
+    /* ====== Task list ====== */
+    .controls{display:flex; flex-wrap:wrap; gap:10px; margin:8px 0 12px}
+    .segmented{
+      background:var(--soft); border-radius:12px; padding:4px; display:inline-flex; gap:4px;
+    }
+    .segmented button{
+      background:transparent; color:var(--text); border:none;
+      padding:8px 12px; border-radius:8px; cursor:pointer;
+    }
+    .segmented button.active{background:var(--card); outline:1px solid color-mix(in srgb, var(--text) 12%, transparent)}
+    .search{flex:1}
+    .list{display:grid; gap:10px}
+    .item{
+      display:grid; gap:10px; grid-template-columns:auto 1fr auto auto;
+      align-items:center; padding:12px; border-radius:12px; background:var(--soft);
+      border:1px solid color-mix(in srgb, var(--text) 8%, transparent);
+    }
+    .item.completed{opacity:.75}
+    .item .title{font-weight:600}
+    .pill{font-size:12px; padding:4px 8px; border-radius:999px; background:#0b1220; color:#cbd5e1}
+    body.light .pill{background:#eef2ff; color:#1e293b}
+    .actions{display:flex; gap:8px}
+    .icon{
+      width:36px; height:36px; display:grid; place-items:center;
+      border-radius:10px; background:transparent; color:var(--text);
+      border:1px solid color-mix(in srgb, var(--text) 12%, transparent);
+      cursor:pointer;
+    }
+    .icon:hover{filter:brightness(1.1)}
+    .icon.ok{border-color:color-mix(in srgb, var(--ok) 55%, transparent)}
+    .icon.danger{border-color:color-mix(in srgb, var(--danger) 55%, transparent)}
+
+    /* ====== Contact ====== */
+    .contact{max-width:900px; margin:20px auto; padding:0 16px}
+    .grid{display:grid; gap:12px; grid-template-columns:1fr 1fr}
+    .grid textarea{grid-column:1/-1; min-height:120px}
+
+    /* ====== Footer ====== */
+    footer{margin-top:40px; padding:20px; text-align:center; color:var(--muted)}
+
+    /* ====== Responsive ====== */
+    @media (max-width: 900px){
+      .hero{grid-template-columns:1fr}
+      .app{grid-template-columns:1fr}
+      .grid{grid-template-columns:1fr}
+    }
+    .founder-buttons {
+    background: #f9f9f9;
+    border-left: 5px solid #007BFF;
+    padding: 15px;
+    border-radius: 8px;
+}
+
+.founder-buttons h2 {
+    margin-bottom: 10px;
+}
+
+.btn {
+    display: inline-block;
+    margin: 5px;
+    padding: 10px 15px;
+    background: #007BFF;
+    color: white;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: bold;
+    transition: background 0.3s ease;
+}
+
+.btn:hover {
+    background: #0056b3;
+}
+  </style>
+</head>
+<body class="light"><!-- default to light, toggleable -->
+
+  <!-- ====== Sticky Navigation ====== -->
+  <header>
+    <div class="nav">
+      <div class="brand">
+        <div class="brand-badge">TF</div>
+        <span>TaskFlow</span>
+      </div>
+      <nav>
+        <a href="#about">About</a>
+        <a href="#app">App</a>
+        <a href="#contact">Contact</a>
+      </nav>
+      <div class="nav-right">
+        <button id="themeBtn" class="btn ghost" title="Toggle theme">🌗 Theme</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ====== Hero / About ====== -->
+  <section id="about" class="hero">
+    <div class="card">
+      <h1 style="margin:.2rem 0 0">TaskFlow – To-Do & Habit Tracker</h1>
+      <p class="muted">
+        is your smart companion for organizing life’s priorities. 
+        With an elegant interface and powerful features, it helps you plan your day, build positive habits, 
+        and stay consistent. Whether you’re managing work projects, tracking daily routines, or breaking 
+        big goals into actionable steps, TaskFlow keeps you on track — effortlessly turning intentions 
+        into accomplishments.
+        
+      </p>
+      <div style="display:flex; gap:10px; margin-top:10px">
+        <a class="btn" href="#app">Open the App</a>
+        <button class="btn ghost" id="demoBtn">Load Demo Tasks</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3 style="margin-top:0">Progress</h3>
+      <p id="progressText" class="muted">0 of 0 completed</p>
+      <div style="height:12px; border-radius:999px; background:var(--soft); overflow:hidden; border:1px solid color-mix(in srgb, var(--text) 10%, transparent)">
+        <div id="progressBar" style="height:100%; width:0%; background:linear-gradient(90deg,var(--ok),#10b981)"></div>
+      </div>
+      <p class="muted" style="margin-top:10px">Tip: Toggle theme to review responsive color contrast.</p>
+    </div>
+  </section>
+
+  <!-- ====== App Section ====== -->
+  <section id="app" class="app">
+
+    <!-- Sidebar: Create Task -->
+    <div class="card">
+      <h3 style="margin-top:0">Create Task</h3>
+      <div class="row" style="margin-top:8px">
+        <input id="title" type="text" placeholder="Task title (e.g., Build landing page)" />
+        <select id="priority" title="Priority">
+          <option value="low">Low priority</option>
+          <option value="medium">Medium priority</option>
+          <option value="high">High priority</option>
+        </select>
+        <input id="due" type="date" />
+      </div>
+      <textarea id="notes" placeholder="Notes (optional)"></textarea>
+      <div class="row" style="margin-top:8px">
+        <button id="addBtn" class="btn">Add Task</button>
+        <button id="clearAllBtn" class="btn ghost">Clear All</button>
+      </div>
+      <p class="muted" style="margin-top:8px">Tasks are saved to your browser with <code>localStorage</code>.</p>
+    </div>
+
+    <!-- Main: List -->
+    <div class="card">
+      <div class="controls">
+        <div class="segmented" role="tablist" aria-label="Filter tasks">
+          <button data-filter="all" class="active">All</button>
+          <button data-filter="active">Active</button>
+          <button data-filter="done">Done</button>
+        </div>
+        <input id="search" class="search" type="text" placeholder="Search tasks…" />
+      </div>
+
+      <div id="list" class="list" aria-live="polite"></div>
+      <p id="empty" class="muted" style="text-align:center; display:none">No tasks yet. Add your first one!</p>
+    </div>
+
+  </section>
+
+  <!-- ====== Contact Section ====== -->
+  <section id="contact" class="contact">
+    <div class="card">
+      <h3 style="margin-top:0">Contact</h3>
+      <form id="contactForm" novalidate>
+        <div class="grid">
+          <input id="cName" type="text" placeholder="Your name" required />
+          <input id="cEmail" type="email" placeholder="Email address" required />
+          <textarea id="cMsg" placeholder="Your message…" required></textarea>
+        </div>
+        <div style="display:flex; gap:10px; margin-top:8px">
+          <button class="btn" type="submit">Send Message</button>
+          <a class="btn ghost" href="mailto:you@example.com">Email Me</a>
+        </div>
+        <p id="contactStatus" class="muted" style="margin-top:8px"></p>
+      </form>
+    </div>
+  </section>
+
+  <footer>
+     <div class="founder-buttons">
+    <h2>👨‍💻 Founder Info</h2>
+    <a href="mailto:badalsingh931038@gmail.com" class="btn">📧 Email Me</a>
+    <a href="https://github.com/badallsingh/portfolio-site" target="_blank" class="btn">💻 GitHub</a>
+    <a href="tel:+919213964904" class="btn">📞 Call Me</a>
+</div>
+  </footer>
+
+  <!-- ====== JavaScript (vanilla, well-commented) ====== -->
+  <script>
+    /* ---------- State & Helpers ---------- */
+    const els = {
+      year: document.getElementById('year'),
+      themeBtn: document.getElementById('themeBtn'),
+      demoBtn: document.getElementById('demoBtn'),
+      addBtn: document.getElementById('addBtn'),
+      clearAllBtn: document.getElementById('clearAllBtn'),
+      title: document.getElementById('title'),
+      priority: document.getElementById('priority'),
+      due: document.getElementById('due'),
+      notes: document.getElementById('notes'),
+      list: document.getElementById('list'),
+      empty: document.getElementById('empty'),
+      search: document.getElementById('search'),
+      filterTabs: document.querySelectorAll('.segmented button'),
+      progressText: document.getElementById('progressText'),
+      progressBar: document.getElementById('progressBar'),
+      contactForm: document.getElementById('contactForm'),
+      contactStatus: document.getElementById('contactStatus'),
+    };
+
+    const STORAGE_KEY = 'taskflow.tasks.v1';
+    const THEME_KEY = 'taskflow.theme';
+    let tasks = loadTasks();
+    let filter = 'all';
+    let query = '';
+
+    function loadTasks(){
+      try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
+      catch { return []; }
+    }
+    function saveTasks(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks)); }
+
+    function uid(){ return Math.random().toString(36).slice(2,9); }
+
+    /* ---------- Rendering ---------- */
+    function render(){
+      const filtered = tasks
+        .filter(t => filter === 'all' ? true : filter === 'done' ? t.done : !t.done)
+        .filter(t => t.title.toLowerCase().includes(query) || (t.notes||'').toLowerCase().includes(query));
+
+      els.list.innerHTML = '';
+      els.empty.style.display = filtered.length ? 'none' : 'block';
+
+      filtered.forEach(t => {
+        const row = document.createElement('div');
+        row.className = 'item' + (t.done ? ' completed' : '');
+        row.innerHTML = `
+          <input type="checkbox" ${t.done ? 'checked' : ''} aria-label="Mark done">
+          <div>
+            <div class="title">${escapeHtml(t.title)}</div>
+            <div class="muted" style="font-size:12px">
+              ${t.due ? ('Due: ' + new Date(t.due).toLocaleDateString()) : 'No due date'}
+              · <span class="pill">Priority: ${t.priority}</span>
+            </div>
+            ${t.notes ? `<div class="muted" style="margin-top:4px">${escapeHtml(t.notes)}</div>` : ''}
+          </div>
+          <button class="icon ok" title="Edit">✎</button>
+          <button class="icon danger" title="Delete">🗑</button>
+        `;
+        // actions
+        const [checkbox, , editBtn, delBtn] = row.querySelectorAll('input, .icon, .icon');
+        checkbox.addEventListener('change', () => { t.done = checkbox.checked; saveTasks(); updateProgress(); render(); });
+        editBtn.addEventListener('click', () => openEditor(t));
+        delBtn.addEventListener('click', () => { tasks = tasks.filter(x => x.id !== t.id); saveTasks(); updateProgress(); render(); });
+
+        els.list.appendChild(row);
+      });
+
+      updateProgress();
+    }
+
+    function updateProgress(){
+      const total = tasks.length, done = tasks.filter(t => t.done).length;
+      els.progressText.textContent = `${done} of ${total} completed`;
+      const pct = total ? Math.round(done / total * 100) : 0;
+      els.progressBar.style.width = pct + '%';
+    }
+
+    function escapeHtml(s){
+      return s.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+    }
+
+    /* ---------- CRUD ---------- */
+    function addTask(){
+      const title = els.title.value.trim();
+      if(!title){ shake(els.title); return; }
+      tasks.unshift({
+        id: uid(),
+        title,
+        notes: els.notes.value.trim(),
+        priority: els.priority.value,
+        due: els.due.value || null,
+        done: false,
+        created: Date.now()
+      });
+      saveTasks(); clearForm(); render();
+    }
+
+    function clearForm(){
+      els.title.value = '';
+      els.notes.value = '';
+      els.priority.value = 'low';
+      els.due.value = '';
+      els.title.focus();
+    }
+
+    function openEditor(task){
+      const newTitle = prompt('Edit title:', task.title);
+      if(newTitle === null) return;
+      task.title = newTitle.trim() || task.title;
+      const newNotes = prompt('Edit notes (optional):', task.notes || '');
+      if(newNotes !== null) task.notes = newNotes.trim();
+      saveTasks(); render();
+    }
+
+    function clearAll(){
+      if(!tasks.length) return;
+      if(confirm('Delete ALL tasks?')){ tasks = []; saveTasks(); render(); }
+    }
+
+    /* ---------- UI helpers ---------- */
+    function shake(el){
+      el.style.transition = 'transform .1s';
+      el.style.transform = 'translateX(3px)';
+      setTimeout(()=> el.style.transform='translateX(-3px)', 80);
+      setTimeout(()=> el.style.transform='translateX(0)', 160);
+    }
+
+    /* ---------- Events ---------- */
+    els.addBtn.addEventListener('click', addTask);
+    els.clearAllBtn.addEventListener('click', clearAll);
+    els.title.addEventListener('keydown', e => { if(e.key === 'Enter') addTask(); });
+
+    els.filterTabs.forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        els.filterTabs.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        filter = btn.dataset.filter;
+        render();
+      });
+    });
+
+    els.search.addEventListener('input', e => { query = e.target.value.trim().toLowerCase(); render(); });
+
+    // Theme toggle + persistence
+    els.themeBtn.addEventListener('click', () => {
+      document.body.classList.toggle('light');
+      localStorage.setItem(THEME_KEY, document.body.classList.contains('light') ? 'light' : 'dark');
+    });
+    (function initTheme(){
+      const saved = localStorage.getItem(THEME_KEY);
+      if(saved === 'dark') document.body.classList.remove('light');
+    })();
+
+    // Demo tasks
+    els.demoBtn.addEventListener('click', ()=>{
+      tasks = [
+        {id:uid(), title:'Build product landing page', notes:'Hero + features + CTA', priority:'high', due:addDays(3), done:false, created:Date.now()},
+        {id:uid(), title:'Create portfolio About section', notes:'Short bio + skills', priority:'medium', due:addDays(5), done:false, created:Date.now()},
+        {id:uid(), title:'Push code to GitHub', notes:'Write README with screenshots', priority:'low', due:null, done:true, created:Date.now()}
+      ];
+      saveTasks(); render();
+    });
+
+    function addDays(n){
+      const d = new Date(); d.setDate(d.getDate()+n);
+      return d.toISOString().slice(0,10);
+    }
+
+    // Contact form (simple client-side validation)
+    els.contactForm.addEventListener('submit', e=>{
+      e.preventDefault();
+      const name = document.getElementById('cName').value.trim();
+      const email = document.getElementById('cEmail').value.trim();
+      const msg = document.getElementById('cMsg').value.trim();
+      if(!name || !email || !msg){ els.contactStatus.textContent = 'Please fill all fields.'; return; }
+      els.contactStatus.textContent = 'Thanks! Your (demo) message has been validated locally.';
+      e.target.reset();
+    });
+
+    // Footer year + first render
+    els.year.textContent = new Date().getFullYear();
+    render();
+    document.getElementById("emailBtn").addEventListener("click", function () {
+    window.location.href = "mailto:badalsingh931038@gmail.com";
+});
+
+document.getElementById("githubBtn").addEventListener("click", function () {
+    window.open("https://github.com/badallsingh/portfolio-site", "_blank");
+});
+
+document.getElementById("callBtn").addEventListener("click", function () {
+    window.location.href = "tel:+919213964904";
+});
+
+  </script>
+</body>
+</html>
